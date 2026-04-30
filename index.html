@@ -497,7 +497,7 @@ function salvarNota(nota) {
     recognition.onstart = () => {
       rodando = true;
       document.getElementById("status").innerHTML = "🎙️ Escutando... (fale um comando)";
-      falar("Microfone ativo.");
+    
     };
 
     recognition.onerror = (event) => {
