@@ -15,7 +15,7 @@
     body {
       font-family: 'Segoe UI', Roboto, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
       background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
-      min-height: 100vh;
+      min-height: 90vh;
       margin: 0;
       padding: 20px;
       display: flex;
@@ -241,7 +241,7 @@
 
   <div class="status-panel">
     <span>🎧 <span id="status">⏹️ Parado</span></span>
-    <span>🔊 Comandos: <strong style="background:#00000030; padding:4px 8px; border-radius:20px;">nota 1..9 | voltar | próxima | parcela "x"</strong></span>
+    <span>🔊 Comandos: <strong style="background:#00000030; padding:4px 8px; border-radius:20px;">nota 1..9 | voltar | próxima | parcela "x" | parcela atual</strong></span>
   </div>
 
   <div class="debug-area">
@@ -297,20 +297,33 @@ function falar(texto) {
 }
 
   // Atualiza interface com dados atuais
-  function atualizarTela() {
-    if (!dados.length) {
-      document.getElementById("plot").innerHTML = "📂 Carregue um arquivo CSV primeiro";
-      document.getElementById("notaAtual").innerText = "-";
-      return;
-    }
-    if (current < dados.length) {
-      let d = dados[current];
-      let notaExibida = (d.nota !== null && d.nota !== undefined) ? d.nota : "⭕ não atribuída";
-      document.getElementById("plot").innerHTML = `🌿 Parcela ${d.plot_id} &nbsp;| 🧬 ${d.genotipo}`;
-      document.getElementById("notaAtual").innerHTML = `${notaExibida}`;
-    } else {
-      document.getElementById("plot").innerHTML = "🏁 ✅ TOMADA DE DADOS FINALIZADA! ✅";
-      document.getElementById("notaAtual").innerHTML = "🎉 completo";
+ // Atualiza interface com dados atuais
+function atualizarTela() {
+  if (!dados.length) {
+    document.getElementById("plot").innerHTML = "📂 Carregue um arquivo CSV primeiro";
+    document.getElementById("notaAtual").innerText = "-";
+    return;
+  }
+  if (current < dados.length) {
+    let d = dados[current];
+    let notaExibida = (d.nota !== null && d.nota !== undefined) ? d.nota : "⭕ não atribuída";
+    let testemunhaTag = d.testemunha ? " 🔹CHECK🔹" : "";
+    document.getElementById("plot").innerHTML = `🌿 Parcela ${d.plot_id} &nbsp;| 🧬 ${d.genotipo}${testemunhaTag}`;
+    document.getElementById("notaAtual").innerHTML = `${notaExibida}`;
+  } else {
+    document.getElementById("plot").innerHTML = "🏁 ✅ TOMADA DE DADOS FINALIZADA! ✅";
+    document.getElementById("notaAtual").innerHTML = "🎉 completo";
+  }
+}
+
+  // Função para verificar se mudou de dezena (10 em 10 parcelas)
+  function verificarViradaDeDezena(parcelaAntiga, parcelaNova) {
+    let dezenaAntiga = Math.floor(parcelaAntiga / 10);
+    let dezenaNova = Math.floor(parcelaNova / 10);
+    
+    // Quando muda de dezena e a parcela nova termina em 1 (ex: 10→11, 20→21)
+    if (dezenaNova > dezenaAntiga && parcelaNova % 10 === 1) {
+      falar("vira");
     }
   }
 
@@ -331,12 +344,37 @@ function salvarNota(nota) {
   if (notaValida > 9) notaValida = 9;
 
   dados[current].nota = notaValida;
+  
+  // Verifica se a parcela atual termina com ZERO
+  let parcelaAtual = dados[current].plot_id;
+  let terminaComZero = (parcelaAtual % 10 === 0);
+  
   // Fala o número da nota (feedback instantâneo no campo)
   falar(`${notaValida}`);
   
   // Avança para a próxima parcela
   if (current + 1 < dados.length) {
     current++;
+    
+    // Usa setTimeout para garantir que a fala anterior terminou
+    setTimeout(() => {
+      // Se a parcela anterior terminava com zero, fala "vira, próxima parcela X"
+      if (terminaComZero) {
+        let proximaParcela = dados[current].plot_id;
+        falar(`vira, próxima parcela ${proximaParcela}`);
+      }
+      
+      // Verifica se a parcela atual é testemunha (fala apenas se for testemunha)
+      let parcelaAtualAposAvancar = dados[current];
+      if (parcelaAtualAposAvancar.testemunha) {
+        setTimeout(() => {
+          falar(`testemunha, parcela ${parcelaAtualAposAvancar.plot_id}`);
+        }, 1000);
+      }
+      // NÃO FALA "parcela" para parcelas normais
+      
+    }, 500);
+    
     atualizarTela();
   } else {
     // acabou o experimento
@@ -355,7 +393,13 @@ function salvarNota(nota) {
     }
     // não salva nota, só avança
     if (current + 1 < dados.length) {
+      let parcelaAntiga = dados[current].plot_id;
       current++;
+      let parcelaNova = dados[current].plot_id;
+      
+      // Verifica se mudou de dezena (ex: 10→11, 20→21)
+      verificarViradaDeDezena(parcelaAntiga, parcelaNova);
+      
       atualizarTela();
       falar("pulado");
       let prox = dados[current];
@@ -409,67 +453,77 @@ function salvarNota(nota) {
     if (idx >= 0) {
       current = idx;
       atualizarTela();
-      falar(`indo para parcela ${id}`);
+      falar(`parcela ${id}`);
       let parc = dados[current];
       setTimeout(() => {
-        if (ativo && rodando) falar(`${parc.genotipo}, nota ${parc.nota ?? "sem nota"}`);
-      }, 400);
+        if (ativo && rodando) falar(`nota ${parc.nota ?? "sem nota"}`);
+      }, 1000);
     } else {
       falar(`parcela ${id} não encontrada`);
     }
   }
 
-  // Carregar CSV (aceita separador vírgula, ponto e vírgula ou tab)
-  function carregarCSV() {
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-    if (!file) {
-      alert("Selecione um arquivo CSV no formato: plot_id, genotipo");
+ 
+ // Carregar CSV (aceita separador vírgula, ponto e vírgula ou tab)
+function carregarCSV() {
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("Selecione um arquivo CSV no formato: plot_id, genotipo, testemunha");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let conteudo = e.target.result;
+    let linhas = conteudo.split(/\r?\n/);
+    if (linhas.length === 0) return;
+    // Detecta cabeçalho
+    let primeiraLinha = linhas[0].toLowerCase();
+    let startRow = 0;
+    if (primeiraLinha.includes('plot_id') || primeiraLinha.includes('parcela')) {
+      startRow = 1;
+    }
+    let novosDados = [];
+    for (let i = startRow; i < linhas.length; i++) {
+      let linha = linhas[i].trim();
+      if (linha === "") continue;
+      // suporta vírgula, ponto e vírgula ou tab
+      let cols;
+      if (linha.includes(',')) cols = linha.split(',');
+      else if (linha.includes(';')) cols = linha.split(';');
+      else cols = linha.split(/\t/);
+      
+      if (cols.length < 2) continue;
+      let plot_id = parseInt(cols[0].trim());
+      let genotipo = cols[1].trim();
+      
+      // Verifica se é testemunha (coluna 3)
+      let ehTestemunha = false;
+      if (cols.length >= 3) {
+        let testemunhaValor = cols[2].trim().toLowerCase();
+        ehTestemunha = (testemunhaValor === 'sim' || testemunhaValor === '1' || testemunhaValor === 'true');
+      }
+      
+      if (isNaN(plot_id)) continue;
+      novosDados.push({
+        plot_id: plot_id,
+        genotipo: genotipo,
+        nota: null,
+        testemunha: ehTestemunha
+      });
+    }
+    if (novosDados.length === 0) {
+      alert("Nenhum dado válido encontrado. Verifique as colunas: plot_id, genotipo, testemunha");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      let conteudo = e.target.result;
-      let linhas = conteudo.split(/\r?\n/);
-      if (linhas.length === 0) return;
-      // Detecta cabeçalho
-      let primeiraLinha = linhas[0].toLowerCase();
-      let startRow = 0;
-      if (primeiraLinha.includes('plot_id') || primeiraLinha.includes('parcela')) {
-        startRow = 1;
-      }
-      let novosDados = [];
-      for (let i = startRow; i < linhas.length; i++) {
-        let linha = linhas[i].trim();
-        if (linha === "") continue;
-        // suporta vírgula, ponto e vírgula ou tab
-        let cols;
-        if (linha.includes(',')) cols = linha.split(',');
-        else if (linha.includes(';')) cols = linha.split(';');
-        else cols = linha.split(/\t/);
-        
-        if (cols.length < 2) continue;
-        let plot_id = parseInt(cols[0].trim());
-        let genotipo = cols[1].trim();
-        if (isNaN(plot_id)) continue;
-        novosDados.push({
-          plot_id: plot_id,
-          genotipo: genotipo,
-          nota: null
-        });
-      }
-      if (novosDados.length === 0) {
-        alert("Nenhum dado válido encontrado. Verifique as colunas: plot_id, genotipo");
-        return;
-      }
-      dados = novosDados;
-      current = 0;
-      atualizarTela();
-      falar(`CSV carregado com ${dados.length} parcelas.`);
-      document.getElementById("debug").innerText = `✅ ${dados.length} parcelas carregadas. Ordem mantida do arquivo.`;
-    };
-    reader.readAsText(file, "UTF-8");
-  }
+    dados = novosDados;
+    current = 0;
+    atualizarTela();
+    falar(`CSV carregado com ${dados.length} parcelas.`);
+    document.getElementById("debug").innerText = `✅ ${dados.length} parcelas carregadas. ${dados.filter(d => d.testemunha).length} testemunhas.`;
+  };
+  reader.readAsText(file, "UTF-8");
+}
 
   // ----- RECONHECIMENTO DE VOZ (Google Chrome / Webkit) -----
   function startRecognition() {
