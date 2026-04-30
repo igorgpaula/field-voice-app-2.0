@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Field Voice App PRO | Fenotipagem por Voz</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none; /* Evita seleção acidental em dispositivos móveis */
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      max-width: 760px;
+      width: 100%;
+      background: rgba(255, 248, 225, 0.98);
+      border-radius: 48px;
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255,255,255,0.6);
+      padding: 1.8rem 1.8rem 2.2rem;
+      transition: all 0.2s;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.9rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #2b5e2f, #0f3b1a);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: inline-block;
+      letter-spacing: -0.3px;
+    }
+
+    .badge {
+      background: #e9b567;
+      color: #2c2b26;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 12px;
+      border-radius: 40px;
+      display: inline-block;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+
+    .file-area {
+      background: #fef5e7;
+      border-radius: 40px;
+      padding: 12px 18px;
+      margin: 20px 0 15px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #e2cfaa;
+    }
+
+    input[type="file"] {
+      background: white;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      flex: 2;
+      border: 1px solid #c0b28a;
+    }
+
+    button {
+      background: #2c5e2f;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 60px;
+      font-weight: bold;
+      font-size: 1rem;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    button:first-of-type {
+      background: #1f4f2d;
+    }
+
+    .danger-btn {
+      background: #9e3c2c;
+    }
+    .danger-btn:hover {
+      background: #7a2e22;
+    }
+
+    .export-btn {
+      background: #a7692a;
+    }
+
+    .action-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+
+    .plot-card {
+      background: #ebe1c7;
+      border-radius: 36px;
+      padding: 1.2rem 1rem;
+      text-align: center;
+      margin: 20px 0;
+      box-shadow: inset 0 1px 3px #fff8, 0 8px 18px rgba(0,0,0,0.1);
+    }
+
+    #plot {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #1e3a1e;
+      margin: 0 0 8px 0;
+      word-break: break-word;
+    }
+
+    .nota-box {
+      background: #2f5d3a;
+      border-radius: 60px;
+      padding: 6px 16px;
+      display: inline-block;
+      color: #f9eec1;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    #notaAtual {
+      font-size: 1.6rem;
+      font-weight: bold;
+      background: #00000030;
+      display: inline-block;
+      padding: 4px 18px;
+      border-radius: 40px;
+      margin-top: 8px;
+    }
+
+    .status-panel {
+      background: #2d3e2b;
+      border-radius: 48px;
+      color: #f2e8cf;
+      padding: 12px 20px;
+      margin: 15px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    #status {
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .debug-area {
+      background: #1e2a1a;
+      color: #c0e0a8;
+      font-family: monospace;
+      font-size: 0.8rem;
+      padding: 12px;
+      border-radius: 28px;
+      margin-top: 15px;
+      word-break: break-word;
+    }
+
+    hr {
+      border-color: #d4c29b;
+      margin: 12px 0;
+    }
+
+    small {
+      display: block;
+      text-align: center;
+      color: #4a6741;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 550px) {
+      .card {
+        padding: 1.3rem;
+      }
+      #plot {
+        font-size: 1.2rem;
+      }
+      button {
+        padding: 7px 14px;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: baseline;">
+    <h2>🌾 Field Voice PRO</h2>
+    <span class="badge">🎙️ voz + ordem personalizada</span>
+  </div>
+  <p style="margin-top: -5px; color: #4a5b3c;">Fenotipagem por comando de voz</p>
+
+  <div class="file-area">
+    <input type="file" id="fileInput" accept=".csv">
+    <button onclick="carregarCSV()">📂 Carregar CSV</button>
+  </div>
+
+  <div class="action-group">
+    <button onclick="startRecognition()">🎤 INICIAR VOZ</button>
+    <button onclick="stopRecognition()" class="danger-btn">⛔ PARAR</button>
+    <button onclick="exportarCSV()" class="export-btn">💾 EXPORTAR</button>
+  </div>
+
+  <div class="plot-card">
+    <div id="plot">📋 Nenhum CSV carregado</div>
+    <div class="nota-box">📌 NOTA ATUAL</div>
+    <div id="notaAtual">—</div>
+  </div>
+
+  <div class="status-panel">
+    <span>🎧 <span id="status">⏹️ Parado</span></span>
+    <span>🔊 Comandos: <strong style="background:#00000030; padding:4px 8px; border-radius:20px;">nota 1..9 | voltar | próxima | parcela "x"</strong></span>
+  </div>
+
+  <div class="debug-area">
+    🧠 Último comando reconhecido:<br>
+    <span id="debug">—</span>
+  </div>
+  <hr>
+  <small>✅ Dica: Sempre fale "nota" antes do número (Ex: "nota 5"); "volta/volte/voltar" volta para parcela anterior; "próxima/pula/pular" avança sem nota; "parcela 12" salta direto para ela.</small>
+</div>
+
+<script>
+  // ---------- VARIÁVEIS GLOBAIS ----------
+  let current = 0;                // índice atual
+  let recognition = null;
+  let ativo = false;              // flag para manter o reconhecimento ativo
+  let rodando = false;            // se o microfone está escutando
+  let dados = [];                 // array de objetos
+  let synth = window.speechSynthesis;
+  let falandoAgora = false;       // para evitar empilhamento de fala
+
+  // ---------- FUNÇÃO DE FALA OTIMIZADA ----------
+ let vozFeminina = null;
+
+// Função para carregar a voz feminina
+function carregarVozFeminina() {
+  const vozes = speechSynthesis.getVoices();
+  // Procura voz feminina em português do Brasil
+  vozFeminina = vozes.find(v => 
+    (v.lang === 'pt-BR' || v.lang === 'pt-PT') && 
+    (v.name.includes('Google') || v.name.includes('Maria') || v.name.includes('Female') || v.name.includes('mulher'))
+  );
+  
+  // Se não encontrar, usa qualquer voz em português
+  if (!vozFeminina) {
+    vozFeminina = vozes.find(v => v.lang === 'pt-BR');
+  }
+}
+
+function falar(texto) {
+  if (!synth) return;
+  synth.cancel();
+  let msg = new SpeechSynthesisUtterance(texto);
+   msg.lang = 'pt-BR';
+  msg.rate = 2;      // velocidade (0.5 = lento, 1 = normal, 2 = rápido)
+  msg.pitch = 1;     // tom (0 = grave, 1 = normal, 2 = agudo)
+  msg.volume = 1;      // volume (0 a 1)
+  
+  if (vozFeminina) {
+    msg.voice = vozFeminina;
+  }
+  
+  synth.speak(msg);
+}
+
+  // Atualiza interface com dados atuais
+  function atualizarTela() {
+    if (!dados.length) {
+      document.getElementById("plot").innerHTML = "📂 Carregue um arquivo CSV primeiro";
+      document.getElementById("notaAtual").innerText = "-";
+      return;
+    }
+    if (current < dados.length) {
+      let d = dados[current];
+      let notaExibida = (d.nota !== null && d.nota !== undefined) ? d.nota : "⭕ não atribuída";
+      document.getElementById("plot").innerHTML = `🌿 Parcela ${d.plot_id} &nbsp;| 🧬 ${d.genotipo}`;
+      document.getElementById("notaAtual").innerHTML = `${notaExibida}`;
+    } else {
+      document.getElementById("plot").innerHTML = "🏁 ✅ TOMADA DE DADOS FINALIZADA! ✅";
+      document.getElementById("notaAtual").innerHTML = "🎉 completo";
+    }
+  }
+
+  // salvar nota da parcela atual e avançar
+function salvarNota(nota) {
+  if (!dados.length) {
+    falar("Nenhum dado carregado");
+    return;
+  }
+  if (current >= dados.length) {
+    falar("Fenotipagem concluída");
+    return;
+  }
+  // validação da nota entre 1 e 9 (escala fenotípica)
+  let notaValida = parseInt(nota);
+  if (isNaN(notaValida)) return;
+  if (notaValida < 1) notaValida = 1;
+  if (notaValida > 9) notaValida = 9;
+
+  dados[current].nota = notaValida;
+  // Fala o número da nota (feedback instantâneo no campo)
+  falar(`${notaValida}`);
+  
+  // Avança para a próxima parcela
+  if (current + 1 < dados.length) {
+    current++;
+    atualizarTela();
+  } else {
+    // acabou o experimento
+    current++;
+    atualizarTela();
+    falar("Fenotipagem concluída com sucesso. Parabéns!");
+  }
+}
+
+  // pular parcela sem atribuir nota
+  function pularParcela() {
+    if (!dados.length) return;
+    if (current >= dados.length) {
+      falar("Finalizado");
+      return;
+    }
+    // não salva nota, só avança
+    if (current + 1 < dados.length) {
+      current++;
+      atualizarTela();
+      falar("pulado");
+      let prox = dados[current];
+      setTimeout(() => {
+        if (ativo && rodando) falar(`Parcela ${prox.plot_id}`);
+      }, 300);
+    } else {
+      // se for a última
+      current++;
+      atualizarTela();
+      falar("última parcela ignorada, coleta encerrada");
+    }
+  }
+
+  // voltar para parcela anterior (para corrigir ou refazer nota)
+  function voltarParcela() {
+    if (!dados.length) return;
+    if (current > 0) {
+      current--;
+      atualizarTela();
+      falar("voltou");
+      let parcAtual = dados[current];
+      setTimeout(() => {
+        if (ativo && rodando) falar(`Parcela ${parcAtual.plot_id}, nota atual ${parcAtual.nota ?? "nenhuma"}`);
+      }, 200);
+    } else {
+      falar("já está na primeira parcela");
+    }
+  }
+
+  // corrigir nota da parcela atual (substitui)
+  function corrigirNota(notaNumerica) {
+    if (!dados.length) return;
+    if (current >= dados.length) {
+      falar("coleta encerrada");
+      return;
+    }
+    let num = parseInt(notaNumerica);
+    if (isNaN(num)) return;
+    if (num < 1) num = 1;
+    if (num > 9) num = 9;
+    dados[current].nota = num;
+    atualizarTela();
+    falar(`corrigido para ${num}`);
+  }
+
+  // ir para parcela específica por ID (plot_id)
+  function irParaParcela(id) {
+    if (!dados.length) return;
+    let idx = dados.findIndex(d => d.plot_id == id);
+    if (idx >= 0) {
+      current = idx;
+      atualizarTela();
+      falar(`indo para parcela ${id}`);
+      let parc = dados[current];
+      setTimeout(() => {
+        if (ativo && rodando) falar(`${parc.genotipo}, nota ${parc.nota ?? "sem nota"}`);
+      }, 400);
+    } else {
+      falar(`parcela ${id} não encontrada`);
+    }
+  }
+
+  // Carregar CSV (aceita separador vírgula, ponto e vírgula ou tab)
+  function carregarCSV() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    if (!file) {
+      alert("Selecione um arquivo CSV no formato: plot_id, genotipo");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let conteudo = e.target.result;
+      let linhas = conteudo.split(/\r?\n/);
+      if (linhas.length === 0) return;
+      // Detecta cabeçalho
+      let primeiraLinha = linhas[0].toLowerCase();
+      let startRow = 0;
+      if (primeiraLinha.includes('plot_id') || primeiraLinha.includes('parcela')) {
+        startRow = 1;
+      }
+      let novosDados = [];
+      for (let i = startRow; i < linhas.length; i++) {
+        let linha = linhas[i].trim();
+        if (linha === "") continue;
+        // suporta vírgula, ponto e vírgula ou tab
+        let cols;
+        if (linha.includes(',')) cols = linha.split(',');
+        else if (linha.includes(';')) cols = linha.split(';');
+        else cols = linha.split(/\t/);
+        
+        if (cols.length < 2) continue;
+        let plot_id = parseInt(cols[0].trim());
+        let genotipo = cols[1].trim();
+        if (isNaN(plot_id)) continue;
+        novosDados.push({
+          plot_id: plot_id,
+          genotipo: genotipo,
+          nota: null
+        });
+      }
+      if (novosDados.length === 0) {
+        alert("Nenhum dado válido encontrado. Verifique as colunas: plot_id, genotipo");
+        return;
+      }
+      dados = novosDados;
+      current = 0;
+      atualizarTela();
+      falar(`CSV carregado com ${dados.length} parcelas.`);
+      document.getElementById("debug").innerText = `✅ ${dados.length} parcelas carregadas. Ordem mantida do arquivo.`;
+    };
+    reader.readAsText(file, "UTF-8");
+  }
+
+  // ----- RECONHECIMENTO DE VOZ (Google Chrome / Webkit) -----
+  function startRecognition() {
+    if (rodando) {
+      falar("Microfone já está ativo");
+      return;
+    }
+    if (!dados.length) {
+      falar("Carregue um arquivo CSV primeiro");
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Seu navegador não suporta reconhecimento de voz. Use Google Chrome.");
+      return;
+    }
+    recognition = new SpeechRecognition();
+    recognition.lang = 'pt-BR';
+    recognition.continuous = true;    // mantém escutando
+    recognition.interimResults = false; // usamos apenas resultados finais para comandos precisos
+    recognition.maxAlternatives = 1;
+
+    ativo = true;
+
+    recognition.onstart = () => {
+      rodando = true;
+      document.getElementById("status").innerHTML = "🎙️ Escutando... (fale um comando)";
+      falar("Microfone ativo.");
+    };
+
+    recognition.onerror = (event) => {
+      console.warn("Erro no reconhecimento: ", event.error);
+      if (event.error === 'not-allowed') {
+        document.getElementById("status").innerHTML = "❌ Microfone bloqueado. Permita acesso.";
+        ativo = false;
+        rodando = false;
+      } else if (event.error === 'no-speech') {
+        // ignora silêncio, apenas não faz nada
+      } else {
+        // tentativa de restart automático
+        if (ativo) {
+          setTimeout(() => {
+            if (ativo && !rodando) {
+              try { recognition.start(); } catch(e) {}
+            }
+          }, 300);
+        }
+      }
+    };
+
+    recognition.onresult = (event) => {
+      let ultimoResultado = event.results[event.results.length - 1];
+      if (!ultimoResultado.isFinal) return;
+      let texto = ultimoResultado[0].transcript;
+      texto = texto.toLowerCase().trim();
+      // normalização: remove pontuação e acentos para melhor match
+      let textoRaw = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      textoRaw = textoRaw.replace(/[.,!?;:]/g, "");
+      
+      document.getElementById("debug").innerHTML = `"${texto}" → interpretado: ${textoRaw}`;
+      
+// 1) comando VOLTAR
+if (textoRaw.includes("voltar") || textoRaw.includes("volta") || textoRaw.includes("volte")) {
+  voltarParcela();
+  falar("ok");
+  return;
+}
+
+// 2) comando PULAR / PROXIMA (sem acento incluso)
+if (textoRaw.includes("pular") || textoRaw.includes("pula") || textoRaw.includes("pule") || 
+    textoRaw.includes("proxima") || textoRaw.includes("próxima") || 
+    textoRaw.includes("proximo") || textoRaw.includes("próximo")) {
+  pularParcela();
+  falar("ok");
+  return;
+}
+
+// 3) CORRIGIR + numero
+if (textoRaw.includes("corrigir") || textoRaw.includes("corrige")) {
+  let numeros = textoRaw.match(/\d+/);
+  if (numeros) {
+    corrigirNota(parseInt(numeros[0]));
+  } else {
+    let mapPalavras = { "um":1, "dois":2, "tres":3, "quatro":4, "cinco":5, "seis":6, "sete":7, "oito":8, "nove":9 };
+    for (let [pal, val] of Object.entries(mapPalavras)) {
+      if (textoRaw.includes(pal)) {
+        corrigirNota(val);
+        return;
+      }
+    }
+    falar("Diga o número para corrigir, por exemplo corrigir 7");
+  }
+  return;
+}
+
+// 4) COMANDO PARCELA ATUAL (vem ANTES do parcela normal!)
+if (textoRaw.includes("parcela atual") || textoRaw.includes("qual parcela") || textoRaw.includes("parcela que estou")) {
+  if (!dados.length) {
+    falar("Nenhum dado carregado");
+    return;
+  }
+  if (current < dados.length) {
+    let parcelaAtual = dados[current];
+    falar(`Você está na parcela ${parcelaAtual.plot_id}, ${parcelaAtual.genotipo}`);
+    document.getElementById("debug").innerHTML = `🗣️ Comando: parcela atual → Parcela ${parcelaAtual.plot_id}`;
+  } else {
+    falar("Fenotipagem já foi concluída");
+  }
+  return;
+}
+
+// 5) IR PARA PARCELA [id] (só pega se tiver número)
+if (textoRaw.includes("parcela") || textoRaw.includes("lote") || textoRaw.includes("ir para")) {
+  let numId = textoRaw.match(/\d+/);
+  if (numId) {
+    irParaParcela(parseInt(numId[0]));
+    return;
+  } else {
+    falar("Diga o número da parcela");
+    return;
+  }
+}
+
+// 6) NOTA DIRETA (nota 5, nota oito, etc) ou simplesmente "5"
+let numeroEncontrado = textoRaw.match(/\b\d+\b/);
+if (numeroEncontrado) {
+  let valNum = parseInt(numeroEncontrado[0]);
+  if (valNum >= 1 && valNum <= 9) {
+    salvarNota(valNum);
+    return;
+  }
+}
+      
+      // palavras por extenso para notas
+      let extenso = {
+        "um":1,"dois":2,"tres":3,"quatro":4,"cinco":5,"seis":6,"sete":7,"oito":8,"nove":9,
+        "nota um":1,"nota dois":2,"nota tres":3,"nota quatro":4,"nota cinco":5,
+        "nota seis":6,"nota sete":7,"nota oito":8,"nota nove":9
+      };
+      for (let [palavra, valor] of Object.entries(extenso)) {
+        if (textoRaw.includes(palavra)) {
+          salvarNota(valor);
+          return;
+        }
+      }
+      
+      // se contém "nota" mas não achou número, tenta auxílio
+      if (textoRaw.includes("nota")) {
+        falar("Por favor, diga um número de 1 a 9");
+      } else {
+        // feedback amigável para comandos não reconhecidos
+        if (textoRaw.length > 2) {
+          falar("Comando não reconhecido. Use 'nota 5', 'voltar', 'pular', 'corrigir 8' ou 'parcela 12'");
+        }
+      }
+    };
+    
+    recognition.onend = () => {
+      rodando = false;
+      if (ativo) {
+        // reconecta automaticamente para manter captura contínua em campo (melhor experiência hands-free)
+        try {
+          recognition.start();
+        } catch (e) {
+          console.log("Erro ao reiniciar reconhecimento", e);
+          rodando = false;
+        }
+      } else {
+        document.getElementById("status").innerHTML = "⏹️ Parado";
+      }
+    };
+    
+    recognition.start();
+  }
+  
+  function stopRecognition() {
+    ativo = false;
+    if (recognition) {
+      try { recognition.stop(); } catch(e) {}
+    }
+    rodando = false;
+    document.getElementById("status").innerHTML = "⏹️ Parado";
+    falar("Reconhecimento de voz desligado");
+  }
+  
+  // Exportar CSV com as notas atribuídas
+  function exportarCSV() {
+    if (!dados.length) {
+      alert("Nenhum dado carregado para exportar.");
+      return;
+    }
+    let cabecalho = "plot_id,genotipo,nota\n";
+    let linhas = "";
+    dados.forEach(d => {
+      let notaExport = (d.nota !== null && d.nota !== undefined) ? d.nota : "";
+      linhas += `${d.plot_id},${d.genotipo},${notaExport}\n`;
+    });
+    let csvCompleto = cabecalho + linhas;
+    let blob = new Blob([csvCompleto], { type: "text/csv;charset=utf-8;" });
+    let link = document.createElement("a");
+    let url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute("download", "resultado_fenotipagem.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    falar("arquivo exportado");
+  }
+  
+  // Bind manual para tornar funções globais acessíveis aos botões (já estão em escopo global)
+  window.carregarCSV = carregarCSV;
+  window.startRecognition = startRecognition;
+  window.stopRecognition = stopRecognition;
+  window.exportarCSV = exportarCSV;
+  
+  // inicialização amigável
+window.onload = () => {
+  atualizarTela();
+  
+  // Carrega a voz feminina quando disponível
+  if (synth) {
+    carregarVozFeminina(); // tenta carregar imediatamente
+    synth.onvoiceschanged = () => {
+      carregarVozFeminina(); // recarrega quando as vozes estiverem prontas
+    };
+  }
+  
+  if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+    document.getElementById("debug").innerHTML = "✅ Pronto! Carregue CSV e clique INICIAR VOZ. (Voz feminina ativada)";
+  } else {
+    document.getElementById("debug").innerHTML = "⚠️ Navegador sem suporte a voz. Use Google Chrome.";
+  }
+};
+</script>
+</body>
+</html>
